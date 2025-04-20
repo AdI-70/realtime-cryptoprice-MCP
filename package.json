@@ -1,0 +1,16 @@
+{
+  "name": "crypto-mcp-server",
+  "version": "1.0.0",
+  "description": "Minimal MCP server for fetching cryptocurrency prices",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.10.1",
+    "node-fetch": "^3.3.0",
+    "zod": "^3.21.4"
+  }
+} 

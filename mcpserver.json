@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "4o-mini-search": {
+      "command": "npx",
+      "args": ["@rebers/4o-mini-search-mcp"],
+      "env": {
+        "API_KEY": "your-api-key-here",
+        "SERVICE_TYPE": "openai"
+      }
+    }
+  },
+  "servers": [
+    {
+      "name": "CryptoPrice",
+      "command": "node",
+      "args": ["server.js"],
+      "cwd": ".",
+      "description": "Cryptocurrency price data from CoinGecko",
+      "metadata": {
+        "version": "1.0.0",
+        "tools": [
+          {
+            "name": "getCryptoPrice",
+            "description": "Get the current price of a specific cryptocurrency",
+            "parameters": {
+              "id": {
+                "type": "string",
+                "description": "Cryptocurrency ID (e.g., bitcoin, ethereum, dogecoin)"
+              },
+              "currency": {
+                "type": "string",
+                "description": "Currency to display the price in (e.g., usd, eur, jpy)",
+                "default": "usd"
+              }
+            }
+          },
+          {
+            "name": "listTopCryptos",
+            "description": "List top cryptocurrencies by market capitalization",
+            "parameters": {
+              "limit": {
+                "type": "number",
+                "description": "Number of top cryptocurrencies to return",
+                "default": 10
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
