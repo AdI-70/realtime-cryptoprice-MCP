@@ -13,6 +13,7 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
+<<<<<<< HEAD
 // Add CORS middleware
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -21,6 +22,8 @@ app.use((req, res, next) => {
   next();
 });
 
+=======
+>>>>>>> ee0ca4f464ec0087fe0e4cadd7ee261a71f547ff
 // API Routes
 app.get('/api/crypto/:id', async (req, res) => {
   try {
@@ -98,6 +101,7 @@ app.get('/api/top-cryptos', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // Add a new search endpoint for all cryptocurrencies
 app.get('/api/search', async (req, res) => {
   try {
@@ -164,6 +168,8 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+=======
+>>>>>>> ee0ca4f464ec0087fe0e4cadd7ee261a71f547ff
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -179,16 +185,22 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+<<<<<<< HEAD
 // Add a new route for the dashboard
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
+=======
+>>>>>>> ee0ca4f464ec0087fe0e4cadd7ee261a71f547ff
 app.listen(PORT, () => {
   console.log(`🚀 CryptoPrice MCP Web Server running at http://localhost:${PORT}`);
   console.log(`📊 API endpoints:`);
   console.log(`   GET /api/crypto/:id?currency=usd`);
   console.log(`   GET /api/top-cryptos?limit=10`);
+<<<<<<< HEAD
   console.log(`   GET /api/search?query=...&limit=10`);
+=======
+>>>>>>> ee0ca4f464ec0087fe0e4cadd7ee261a71f547ff
   console.log(`   GET /api/health`);
 });
