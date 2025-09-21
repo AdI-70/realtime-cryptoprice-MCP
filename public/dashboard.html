@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto MCP Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-3">
+                <i class="fas fa-chart-line mr-2"></i>Crypto MCP Dashboard
+            </h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Real-time cryptocurrency prices powered by your MCP server. 
+                <span class="font-semibold text-blue-600">http://localhost:3000</span>
+            </p>
+        </header>
+
+        <!-- Search Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 max-w-4xl mx-auto">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label for="crypto-search" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-search mr-1"></i>Search Cryptocurrency
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="crypto-search" 
+                            placeholder="Search by name or symbol (e.g. Bitcoin, BTC)" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        >
+                        <button id="search-btn" class="absolute right-2 top-3 bg-blue-500 text-white p-1 rounded hover:bg-blue-600 transition">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button id="refresh-btn" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="bg-white rounded-lg shadow p-4 mb-8 max-w-4xl mx-auto">
+            <div class="flex flex-wrap justify-between items-center">
+                <div class="flex items-center mb-2 md:mb-0">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span class="font-medium">Server Status:</span>
+                    <span class="ml-2 text-green-600 font-semibold">Online</span>
+                </div>
+                <div class="flex items-center mb-2 md:mb-0">
+                    <i class="fas fa-database text-blue-500 mr-2"></i>
+                    <span>Data Source:</span>
+                    <span class="ml-2 font-semibold">CoinGecko API via MCP</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-sync-alt text-purple-500 mr-2"></i>
+                    <span>Last Updated:</span>
+                    <span id="last-updated" class="ml-2 font-semibold">Never</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-16 hidden">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                <p class="text-xl text-gray-600">Fetching cryptocurrency data...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg max-w-4xl mx-auto mb-8">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle text-xl mr-3"></i>
+                    <p class="font-bold">Error:</p>
+                </div>
+                <p id="error-message" class="mt-2 ml-8"></p>
+                <button id="retry-btn" class="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition">
+                    <i class="fas fa-redo mr-2"></i>Try Again
+                </button>
+            </div>
+
+            <!-- Crypto Data Section -->
+            <div id="crypto-data" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8 max-w-6xl mx-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">
+                            <i class="fas fa-coins text-yellow-500 mr-2"></i>Top Cryptocurrencies
+                        </h2>
+                        <div class="text-sm text-gray-500">
+                            Showing <span id="crypto-count">0</span> cryptocurrencies
+                        </div>
+                    </div>
+                    <div id="crypto-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Crypto cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Endpoints Info -->
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 max-w-6xl mx-auto text-white">
+                <h3 class="text-xl font-bold mb-4">
+                    <i class="fas fa-plug mr-2"></i>Available API Endpoints
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">GET /api/crypto/:id</div>
+                        <div class="text-sm opacity-90">Get price for a specific cryptocurrency</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">GET /api/top-cryptos</div>
+                        <div class="text-sm opacity-90">Get top cryptocurrencies by market cap</div>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">GET /api/health</div>
+                        <div class="text-sm opacity-90">Check server health status</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // State management
+        let cryptoData = [];
+        let filteredData = [];
+        let searchTimeout;
+
+        // DOM Elements
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+        const cryptoDataElement = document.getElementById('crypto-data');
+        const errorMessageElement = document.getElementById('error-message');
+        const cryptoGridElement = document.getElementById('crypto-grid');
+        const lastUpdatedElement = document.getElementById('last-updated');
+        const cryptoCountElement = document.getElementById('crypto-count');
+        const searchInput = document.getElementById('crypto-search');
+        const searchBtn = document.getElementById('search-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const retryBtn = document.getElementById('retry-btn');
+
+        // Format timestamp
+        function formatTimestamp() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Fetch cryptocurrency data
+        async function fetchCryptoData() {
+            try {
+                // Show loading state
+                loadingElement.classList.remove('hidden');
+                errorElement.classList.add('hidden');
+                cryptoDataElement.classList.add('hidden');
+
+                const response = await fetch('/api/top-cryptos');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Update global state
+                cryptoData = data.cryptos;
+                filteredData = [...cryptoData];
+
+                // Update UI
+                lastUpdatedElement.textContent = formatTimestamp();
+                cryptoCountElement.textContent = filteredData.length;
+
+                // Render crypto cards
+                renderCryptoCards();
+
+                // Hide loading, show data
+                loadingElement.classList.add('hidden');
+                cryptoDataElement.classList.remove('hidden');
+            } catch (err) {
+                // Hide loading
+                loadingElement.classList.add('hidden');
+
+                // Show error message
+                errorMessageElement.textContent = err.message;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        // Search for cryptocurrencies
+        async function searchCryptos(query) {
+            if (!query.trim()) {
+                // If query is empty, fetch top cryptos
+                return fetchCryptoData();
+            }
+
+            try {
+                // Show loading state
+                loadingElement.classList.remove('hidden');
+                errorElement.classList.add('hidden');
+                cryptoDataElement.classList.add('hidden');
+
+                const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&limit=20`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // Transform search results to match our data structure
+                const transformedData = data.coins.map(coin => ({
+                    id: coin.id,
+                    name: coin.name,
+                    symbol: coin.symbol,
+                    price: coin.price,
+                    market_cap: null, // Search results don't include market cap
+                    price_change_24h: null, // Search results don't include 24h change
+                    market_cap_rank: coin.market_cap_rank
+                }));
+
+                // Update global state
+                cryptoData = transformedData;
+                filteredData = [...cryptoData];
+
+                // Update UI
+                lastUpdatedElement.textContent = formatTimestamp();
+                cryptoCountElement.textContent = filteredData.length;
+
+                // Render crypto cards
+                renderCryptoCards();
+
+                // Hide loading, show data
+                loadingElement.classList.add('hidden');
+                cryptoDataElement.classList.remove('hidden');
+            } catch (err) {
+                // Hide loading
+                loadingElement.classList.add('hidden');
+
+                // Show error message
+                errorMessageElement.textContent = err.message;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        // Render cryptocurrency cards
+        function renderCryptoCards() {
+            cryptoGridElement.innerHTML = '';
+            
+            filteredData.forEach(crypto => {
+                // For search results, we may not have price change data
+                const hasPriceChange = crypto.price_change_24h !== null;
+                const priceChangeClass = !hasPriceChange ? 'text-gray-500' :
+                    crypto.price_change_24h >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
+                
+                const priceChangeIcon = !hasPriceChange ? '' :
+                    crypto.price_change_24h >= 0 ? '<i class="fas fa-arrow-up mr-1"></i>' : '<i class="fas fa-arrow-down mr-1"></i>';
+                
+                const priceChangeText = !hasPriceChange ? 'N/A' :
+                    `${Math.abs(crypto.price_change_24h)?.toFixed(2)}%`;
+                
+                // Format market cap
+                let marketCapText = 'N/A';
+                if (crypto.market_cap) {
+                    if (crypto.market_cap >= 1000000000) {
+                        marketCapText = `$${(crypto.market_cap / 1000000000).toFixed(2)}B`;
+                    } else if (crypto.market_cap >= 1000000) {
+                        marketCapText = `$${(crypto.market_cap / 1000000).toFixed(2)}M`;
+                    } else {
+                        marketCapText = `$${crypto.market_cap.toLocaleString()}`;
+                    }
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">${crypto.name}</h3>
+                            <p class="text-gray-500 text-sm">${crypto.symbol}</p>
+                        </div>
+                        <div class="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12 flex items-center justify-center text-gray-400">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-2xl font-bold text-gray-800">
+                            ${crypto.price ? `$${crypto.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                        </p>
+                    </div>
+                    ${hasPriceChange ? `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">24h Change</span>
+                        <span class="px-3 py-1 rounded-full text-sm font-semibold ${priceChangeClass}">
+                            ${priceChangeIcon}${priceChangeText}
+                        </span>
+                    </div>` : ''}
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">Market Cap</span>
+                            <span class="font-medium">${marketCapText}</span>
+                        </div>
+                        ${crypto.market_cap_rank ? `
+                        <div class="flex justify-between text-sm mt-1">
+                            <span class="text-gray-500">Rank</span>
+                            <span class="font-medium">#${crypto.market_cap_rank}</span>
+                        </div>` : ''}
+                    </div>
+                `;
+                cryptoGridElement.appendChild(card);
+            });
+        }
+
+        // Debounced search function
+        function debouncedSearch() {
+            const query = searchInput.value.trim();
+            
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            // Set new timeout
+            searchTimeout = setTimeout(() => {
+                searchCryptos(query);
+            }, 300);
+        }
+
+        // Event Listeners
+        searchInput.addEventListener('input', debouncedSearch);
+        searchBtn.addEventListener('click', () => {
+            searchCryptos(searchInput.value.trim());
+        });
+        refreshBtn.addEventListener('click', fetchCryptoData);
+        retryBtn.addEventListener('click', fetchCryptoData);
+
+        // Fetch data when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCryptoData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(fetchCryptoData, 30000);
+        });
+    </script>
+</body>
+</html>

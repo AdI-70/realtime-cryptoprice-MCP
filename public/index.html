@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoPrice MCP Server Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+
+        .search-section {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .results-section {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .results-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .crypto-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .crypto-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+
+        .crypto-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .crypto-grid-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .crypto-grid-item:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+        }
+
+        .crypto-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .crypto-symbol {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+
+        .crypto-price-large {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+        }
+
+        .crypto-change {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 15px;
+        }
+
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .api-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .api-info h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .api-endpoint {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 5px 0;
+            border-left: 3px solid #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                min-width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CryptoPrice MCP Server</h1>
+            <p>Real-time cryptocurrency price data via Model Context Protocol</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>Server Status: <strong id="server-status">Checking...</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Last Updated: <strong id="last-updated">Never</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Data Source: <strong>CoinGecko API</strong></span>
+            </div>
+        </div>
+
+        <div class="api-info">
+            <h3>📡 Available API Endpoints</h3>
+            <div class="api-endpoint">GET /api/crypto/:id?currency=usd</div>
+            <div class="api-endpoint">GET /api/top-cryptos?limit=10</div>
+            <div class="api-endpoint">GET /api/health</div>
+        </div>
+
+        <div class="search-section">
+            <h3>🔍 Get Specific Cryptocurrency Price</h3>
+            <form class="search-form" id="price-form">
+                <div class="form-group">
+                    <label for="crypto-id">Cryptocurrency ID</label>
+                    <input type="text" id="crypto-id" placeholder="e.g., bitcoin, ethereum, dogecoin" value="bitcoin">
+                </div>
+                <div class="form-group">
+                    <label for="currency">Currency</label>
+                    <select id="currency">
+                        <option value="usd">USD</option>
+                        <option value="eur">EUR</option>
+                        <option value="jpy">JPY</option>
+                        <option value="gbp">GBP</option>
+                        <option value="cad">CAD</option>
+                        <option value="aud">AUD</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Get Price</button>
+            </form>
+        </div>
+
+        <div class="search-section">
+            <h3>📊 Top Cryptocurrencies</h3>
+            <form class="search-form" id="top-form">
+                <div class="form-group">
+                    <label for="limit">Number of cryptocurrencies</label>
+                    <select id="limit">
+                        <option value="5">Top 5</option>
+                        <option value="10" selected>Top 10</option>
+                        <option value="25">Top 25</option>
+                        <option value="50">Top 50</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-secondary">Load Top Cryptos</button>
+            </form>
+        </div>
+
+        <div class="results-section">
+            <h3>📈 Results</h3>
+            <div id="results">
+                <p>Click "Load Top Cryptos" to see the current market leaders, or search for a specific cryptocurrency above.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check server health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                document.getElementById('server-status').textContent = data.status === 'healthy' ? 'Online' : 'Offline';
+                document.getElementById('last-updated').textContent = new Date(data.timestamp).toLocaleString();
+            } catch (error) {
+                document.getElementById('server-status').textContent = 'Offline';
+                console.error('Health check failed:', error);
+            }
+        }
+
+        // Get specific crypto price
+        document.getElementById('price-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const cryptoId = document.getElementById('crypto-id').value.trim();
+            const currency = document.getElementById('currency').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!cryptoId) {
+                resultsDiv.innerHTML = '<div class="error">Please enter a cryptocurrency ID</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="loading">Fetching price data...</div>';
+            
+            try {
+                const response = await fetch(`/api/crypto/${cryptoId}?currency=${currency}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="crypto-card">
+                            <div class="crypto-price">$${data.price.toLocaleString()}</div>
+                            <div class="crypto-info">
+                                <strong>${data.id}</strong> in ${data.currency}
+                                <br>Last updated: ${new Date().toLocaleString()}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Network error: ${error.message}</div>`;
+            }
+            
+            checkHealth();
+        });
+
+        // Get top cryptocurrencies
+        document.getElementById('top-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const limit = document.getElementById('limit').value;
+            const resultsDiv = document.getElementById('results');
+            
+            resultsDiv.innerHTML = '<div class="loading">Fetching top cryptocurrencies...</div>';
+            
+            try {
+                const response = await fetch(`/api/top-cryptos?limit=${limit}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const cryptosHtml = data.cryptos.map(crypto => `
+                        <div class="crypto-grid-item">
+                            <div class="crypto-name">
+                                ${crypto.name}
+                                <span class="crypto-symbol">${crypto.symbol}</span>
+                            </div>
+                            <div class="crypto-price-large">$${crypto.price.toLocaleString()}</div>
+                            <div class="crypto-change ${crypto.price_change_24h >= 0 ? 'positive' : 'negative'}">
+                                ${crypto.price_change_24h >= 0 ? '+' : ''}${crypto.price_change_24h.toFixed(2)}%
+                            </div>
+                            <div class="crypto-info">
+                                Market Cap: $${(crypto.market_cap / 1000000000).toFixed(2)}B
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="crypto-grid">
+                            ${cryptosHtml}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Network error: ${error.message}</div>`;
+            }
+            
+            checkHealth();
+        });
+
+        // Initial health check
+        checkHealth();
+        
+        // Auto-refresh health status every 30 seconds
+        setInterval(checkHealth, 30000);
+    </script>
+</body>
+</html>
